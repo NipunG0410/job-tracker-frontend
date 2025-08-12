@@ -6,25 +6,21 @@ import Modal from './Modal';
 import JobForm from './JobForm';
 
 const Dashboard = () => {
-  // State for the main data
   const [jobs, setJobs] = useState([]);
-  // NEW: State for loading and error messages
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // NEW: State for managing the modal
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingJob, setEditingJob] = useState(null); // Holds the job being edited
+  const [editingJob, setEditingJob] = useState(null);
 
   const columnOrder = ['Opportunities', 'Applied', 'Applied with Referral', 'Hiring Managers', 'Archived'];
 
-  // Fetch initial data
   useEffect(() => {
     const fetchJobs = async () => {
       try {
         setError(null);
         setIsLoading(true);
-        const response = await axios.get('${process.env.REACT_APP_API_URL}/api/jobs');
+        // CORRECTED: Used backticks `` instead of single quotes ''
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/jobs`);
         setJobs(response.data);
       } catch (err) {
         setError('Failed to fetch jobs. Please try refreshing the page.');
@@ -36,9 +32,8 @@ const Dashboard = () => {
     fetchJobs();
   }, []);
 
-  // --- Modal Handlers ---
   const openAddModal = () => {
-    setEditingJob(null); // Make sure we're not in edit mode
+    setEditingJob(null);
     setIsModalOpen(true);
   };
 
@@ -52,22 +47,21 @@ const Dashboard = () => {
     setEditingJob(null);
   };
 
-  // --- CRUD Handlers ---
   const handleFormSubmit = async (formData) => {
     const jobData = { ...formData };
     if (editingJob) {
-      // --- UPDATE LOGIC ---
       try {
+        // CORRECTED: Ensured backticks are used here too
         const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/jobs/${editingJob._id}`, jobData);
-        setJobs(jobs.map(job => job._id === editingJob._id ? response.data : job));
+        setJobs(jobs.map(job => (job._id === editingJob._id ? response.data : job)));
       } catch (err) {
         console.error("Error updating job:", err);
         alert("Failed to update job.");
       }
     } else {
-      // --- CREATE LOGIC ---
       try {
-        const response = await axios.post('${process.env.REACT_APP_API_URL}/api/jobs', jobData);
+        // CORRECTED: Used backticks `` instead of single quotes ''
+        const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/jobs`, jobData);
         setJobs(prevJobs => [...prevJobs, response.data]);
       } catch (err) {
         console.error("Error creating job:", err);
@@ -80,6 +74,7 @@ const Dashboard = () => {
   const handleDeleteJob = async (jobId) => {
     if (window.confirm('Are you sure you want to delete this job?')) {
       try {
+        // CORRECTED: Ensured backticks are used here too
         await axios.delete(`${process.env.REACT_APP_API_URL}/api/jobs/${jobId}`);
         setJobs(jobs.filter(job => job._id !== jobId));
       } catch (err) {
@@ -98,24 +93,22 @@ const Dashboard = () => {
     const newStatus = destination.droppableId;
     const updatedFields = { status: newStatus };
 
-    // Optimistic UI Update
     const originalJobs = [...jobs];
     const updatedJobs = jobs.map(job =>
       job._id === draggableId ? { ...job, ...updatedFields } : job
     );
     setJobs(updatedJobs);
 
-    // Backend Update
     try {
+      // CORRECTED: Ensured backticks are used here too
       await axios.put(`${process.env.REACT_APP_API_URL}/api/jobs/${draggableId}`, updatedFields);
     } catch (err) {
       console.error("Error updating job status:", err);
-      setJobs(originalJobs); // Revert on failure
+      setJobs(originalJobs);
       alert('Failed to move job.');
     }
   };
 
-  // --- Render Logic ---
   if (isLoading) {
     return <div className="status-indicator">Loading...</div>;
   }
@@ -134,8 +127,8 @@ const Dashboard = () => {
                 key={columnName}
                 title={columnName}
                 jobs={columnJobs}
-                onAddJob={openAddModal} // Now opens the modal
-                onEditJob={openEditModal} // New prop
+                onAddJob={openAddModal}
+                onEditJob={openEditModal}
                 onDeleteJob={handleDeleteJob}
               />
             );
